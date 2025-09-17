@@ -15,7 +15,7 @@ Muitos me disseram que era impossível, mas você me conhece, então aceitei o d
 Isto é um **SOFTWARE**. Não é um **plugin** para nenhum software de servidor Minecraft.
 
 ## Como Conseguir?
-Basta entrar no nosso [Discord](https://discord.com/invite/mrmHcwxXff) e obtê-lo a um preço **acessível** e **negociável**! Não espere mais!
+Basta ir em Releases e baixar o jar que você mais gosta!
 
 ## Como Funciona?
 Este proxy traduz os datapacks do Minecraft Pocket para Minecraft Bedrock e vice-versa, algo assim:
