@@ -18,7 +18,7 @@ Tener abierto el puerto que vas a usar para abrir el servidor.
 Esto es un **SOFTWARE** No es un **plugin** de ningún software de servidor de Minecraft.
 
 ## Como lo Consigo?
-Simplemente entrando a nuestro [Discord](https://discord.com/invite/mrmHcwxXff) y a un precio **accesible** y **Negociable**! no esperes más!
+Simplemente entrando a Lanzamientos y descargando el jar que más gustes!
 
 ## Como Funciona?
 Este proxy traduce los datapacks de Minecraft pocket a Minecraft Bedrock y viceversa algo así:
