@@ -1,2 +1,34 @@
-ip: "play.com"
+# Proxy (Upstream) Server
+bindAddress: "0.0.0.0"
 port: 19132
+motd: "A CraftsMine Proxy"
+submotd: "CraftsMine Software by Creadores Program"
+# max players in proxy
+maxplayers: 10
+# Message when the proxy is closed
+shutdownMessage: "Proxy Closed"
+# Downstream server (bedrock NukkitPM1E, or multiversion, or versionBedrockServer option version)
+bedrockAddress: "test.example.com"
+bedrockPort: 19132
+# Version for Minecraft Bedrock Server (1.7|1.8|1.9|1.10)
+versionBedrockServer: "1.7"
+
+#Debug log?
+debug: false
+# Generate console.log?
+consoleLog: true
+
+# Free memory when disconnecting a player
+gcCollectionDiconnectPlayer: true
+# Free memory auto
+gcCollectionAuto: true
+# Free memory in time... (from gcCollectionAuto)
+gcCollectionTime: 1800000
+
+# language code for the players
+langPlayer: "en-US"
+
+#synchronize motd with target server
+synchServer: false
+# time refress(in miliseconds)
+timeSynchServer: 15000
