@@ -31,6 +31,9 @@ import org.cloudburstmc.protocol.bedrock.codec.v313.Bedrock_v313;
 import org.cloudburstmc.protocol.bedrock.codec.v332.Bedrock_v332;
 //1.10
 import org.cloudburstmc.protocol.bedrock.codec.v340.Bedrock_v340;
+import org.cloudburstmc.protocol.bedrock.data.EncodingSettings;
+import org.cloudburstmc.protocol.bedrock.codec.BedrockCodecHelper;
+import org.cloudburstmc.protocol.bedrock.codec.BaseBedrockCodecHelper;
 import org.CreadoresProgram.CraftsMine.player.Player;
 import org.CreadoresProgram.CraftsMine.options.Config;
 import org.CreadoresProgram.CraftsMine.utils.FileManager;
@@ -123,19 +126,39 @@ public class Server{
     }
     switch(this.config.getVersionBedrockServer()){
       case "1.8":
-        this.bedrockPacketCodec = Bedrock_v313.CODEC;
+        this.bedrockPacketCodec = Bedrock_v313.CODEC.toBuilder().helper(()->{
+          BaseBedrockCodecHelper codec = (BaseBedrockCodecHelper) Bedrock_v313.CODEC.createHelper();
+          codec.setEncodingSettings(EncodingSettings.CLIENT);
+          return (BedrockCodecHelper) codec;
+        }).build();
         break;
       case "1.9":
-        this.bedrockPacketCodec = Bedrock_v332.CODEC;
+        this.bedrockPacketCodec = Bedrock_v332.CODEC.toBuilder().helper(()->{
+          BaseBedrockCodecHelper codec = (BaseBedrockCodecHelper) Bedrock_v332.CODEC.createHelper();
+          codec.setEncodingSettings(EncodingSettings.CLIENT);
+          return (BedrockCodecHelper) codec;
+        }).build();
         break;
       case "1.10":
-        this.bedrockPacketCodec = Bedrock_v340.CODEC;
+        this.bedrockPacketCodec = Bedrock_v340.CODEC.toBuilder().helper(()->{
+          BaseBedrockCodecHelper codec = (BaseBedrockCodecHelper) Bedrock_v340.CODEC.createHelper();
+          codec.setEncodingSettings(EncodingSettings.CLIENT);
+          return (BedrockCodecHelper) codec;
+        }).build();
         break;
       case "1.7":
-        this.bedrockPacketCodec = Bedrock_v291.CODEC;
+        this.bedrockPacketCodec = Bedrock_v291.CODEC.toBuilder().helper(()->{
+          BaseBedrockCodecHelper codec = (BaseBedrockCodecHelper) Bedrock_v291.CODEC.createHelper();
+          codec.setEncodingSettings(EncodingSettings.CLIENT);
+          return (BedrockCodecHelper) codec;
+        }).build();
         break;
       default:
-        this.bedrockPacketCodec = Bedrock_v291.CODEC;
+        this.bedrockPacketCodec = Bedrock_v291.CODEC.toBuilder().helper(()->{
+          BaseBedrockCodecHelper codec = (BaseBedrockCodecHelper) Bedrock_v291.CODEC.createHelper();
+          codec.setEncodingSettings(EncodingSettings.CLIENT);
+          return (BedrockCodecHelper) codec;
+        }).build();
         this.getLogger().warn("Version Not Found Using 1.7!");
         break;
     }
