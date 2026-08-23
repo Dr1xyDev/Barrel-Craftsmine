@@ -56,7 +56,7 @@ public class PacketTranslatorManager {
     bedrockTranslators.put(HurtArmorPacket.class, new org.CreadoresProgram.CraftsMine.network.translator.bedrock.HurtArmor());
     bedrockTranslators.put(InventoryContentPacket.class, new org.CreadoresProgram.CraftsMine.network.translator.bedrock.InventoryContent());
     bedrockTranslators.put(InventorySlotPacket.class, new org.CreadoresProgram.CraftsMine.network.translator.bedrock.InventorySlot());
-//    bedrockTranslators.put(UpdateBlockPacket.class, new org.CreadoresProgram.CraftsMine.network.translator.bedrock.UpdateBlock());
+    bedrockTranslators.put(UpdateBlockPacket.class, new org.CreadoresProgram.CraftsMine.network.translator.bedrock.UpdateBlock());
     bedrockTranslators.put(AddPaintingPacket.class, new org.CreadoresProgram.CraftsMine.network.translator.bedrock.AddPainting());
     bedrockTranslators.put(MobEffectPacket.class, new org.CreadoresProgram.CraftsMine.network.translator.bedrock.MobEffect());
     bedrockTranslators.put(ChunkRadiusUpdatedPacket.class, new org.CreadoresProgram.CraftsMine.network.translator.bedrock.ChunkRadiusUpdated());
