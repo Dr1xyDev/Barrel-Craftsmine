@@ -6,9 +6,13 @@ import org.cloudburstmc.protocol.bedrock.packet.BedrockPacket;
 import org.CreadoresProgram.CraftsMine.network.translator.ReloadAuthP;
 import org.cloudburstmc.protocol.bedrock.data.AuthoritativeMovementMode;
 import java.util.concurrent.TimeUnit;
+import java.util.List;
+import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.protocol.common.SimpleDefinitionRegistry;
 import org.cloudburstmc.protocol.bedrock.data.definitions.ItemDefinition;
 import org.cloudburstmc.protocol.bedrock.data.definitions.SimpleItemDefinition;
+import org.CreadoresProgram.CraftsMine.utils.BlockMapper;
+import org.CreadoresProgram.CraftsMine.server.Server;
 
 public class StartGame implements BedrockPacketTranslator{
   @Override
@@ -66,6 +70,37 @@ public class StartGame implements BedrockPacketTranslator{
                 .add(new SimpleItemDefinition("minecraft:empty", 0, false))
                 .build();
     player.getBedrockClientSession().getPeer().getCodecHelper().setItemDefinitions(itemDefinitions);
+
+    // Extract block palette from StartGamePacket and build runtime->legacy mapping
+    List<NbtMap> blockPalette = null;
+    try {
+      blockPalette = packet.getBlockPalette();
+    } catch (Throwable ignored) {
+    }
+    if (blockPalette != null && !blockPalette.isEmpty()) {
+      player.setBlockMapper(new BlockMapper(blockPalette));
+    } else if (Server.getInstance().getBlockDefinitions() != null) {
+      // Fallback: use bundled palette (less accurate but better than nothing)
+      // The NbtBlockDefinitionRegistry stores NbtMaps indexed by runtime ID
+      List<NbtMap> bundled = new java.util.ArrayList<>();
+      for (int i = 0; ; i++) {
+        try {
+          org.cloudburstmc.protocol.bedrock.data.definitions.BlockDefinition bd =
+                  Server.getInstance().getBlockDefinitions().getDefinition(i);
+          if (bd == null) break;
+          // Use reflection to get the NbtMap from NbtBlockDefinition
+          java.lang.reflect.Field f = bd.getClass().getDeclaredField("definition");
+          f.setAccessible(true);
+          bundled.add((NbtMap) f.get(bd));
+        } catch (Throwable t) {
+          break;
+        }
+      }
+      if (!bundled.isEmpty()) {
+        player.setBlockMapper(new BlockMapper(bundled));
+      }
+    }
+
     if(packet.getAuthoritativeMovementMode() == AuthoritativeMovementMode.SERVER){
       player.setPlayerInputAuth(true);
       player.setTikPia(packet.getCurrentTick());

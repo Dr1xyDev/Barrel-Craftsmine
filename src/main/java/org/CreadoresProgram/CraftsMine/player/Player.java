@@ -42,6 +42,7 @@ import org.CreadoresProgram.CraftsMine.network.protocol.base.MCDPacket;
 import org.CreadoresProgram.CraftsMine.network.protocol.DisconnectPacket;
 import org.CreadoresProgram.CraftsMine.nukkitLib.entity.data.Skin;
 import org.CreadoresProgram.CraftsMine.inventory.Item;
+import org.CreadoresProgram.CraftsMine.utils.BlockMapper;
 import org.CreadoresProgram.CraftsMine.network.translator.managerScreen.ScreenManager;
 
 public class Player extends Vector3{
@@ -138,6 +139,10 @@ public class Player extends Vector3{
 
   @Getter
   private ScreenManager screenManager;
+
+  @Getter
+  @Setter
+  private BlockMapper blockMapper;
   
   public Player(String indentifier){
     this.identifierCraftsMan = indentifier;
