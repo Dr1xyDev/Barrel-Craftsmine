@@ -62,7 +62,7 @@ public class PacketTranslatorManager {
     bedrockTranslators.put(ChunkRadiusUpdatedPacket.class, new org.CreadoresProgram.CraftsMine.network.translator.bedrock.ChunkRadiusUpdated());
     bedrockTranslators.put(InteractPacket.class, new org.CreadoresProgram.CraftsMine.network.translator.bedrock.Interact());
     bedrockTranslators.put(PlayerActionPacket.class, new org.CreadoresProgram.CraftsMine.network.translator.bedrock.PlayerAction());
-//    bedrockTranslators.put(LevelChunkPacket.class, new org.CreadoresProgram.CraftsMine.network.translator.bedrock.LevelChunk());
+    bedrockTranslators.put(LevelChunkPacket.class, new org.CreadoresProgram.CraftsMine.network.translator.bedrock.LevelChunk());
 //    bedrockTranslators.put(AddPlayerPacket.class, new org.CreadoresProgram.CraftsMine.network.translator.bedrock.AddPlayer());
 //    bedrockTranslators.put(UpdateAttributesPacket.class, new org.CreadoresProgram.CraftsMine.network.translator.bedrock.UpdateAttributes());
     bedrockTranslators.put(LevelEventPacket.class, new org.CreadoresProgram.CraftsMine.network.translator.bedrock.LevelEventT());
