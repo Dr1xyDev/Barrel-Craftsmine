@@ -1,6 +1,8 @@
 package org.CreadoresProgram.CraftsMine.utils;
 
 import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.nbt.NbtType;
+import org.CreadoresProgram.CraftsMine.server.Server;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -25,6 +27,21 @@ public class BlockMapper {
             int[] lm = mapBlock(name, states);
             this.legacyIds[i] = lm[0];
             this.legacyMeta[i] = (byte) lm[1];
+        }
+        // Log first few entries for diagnostics
+        if (Server.getInstance() != null && Server.getInstance().getConfig() != null
+                && Server.getInstance().getConfig().isDebug() && size > 0) {
+            StringBuilder sb = new StringBuilder();
+            int showCnt = Math.min(size, 10);
+            for (int i = 0; i < showCnt; i++) {
+                NbtMap entry = blockPalette.get(i);
+                String name = getNbtString(entry, "name");
+                sb.append("[").append(i).append("]=").append(name)
+                  .append("->id=").append(legacyIds[i])
+                  .append(":").append(legacyMeta[i]).append(" ");
+            }
+            Server.getInstance().getLogger().debug(
+                "[BlockMapper] Created size=" + size + " first entries: " + sb);
         }
     }
 

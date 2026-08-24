@@ -8,6 +8,7 @@ import org.cloudburstmc.protocol.bedrock.data.AuthoritativeMovementMode;
 import java.util.concurrent.TimeUnit;
 import java.util.List;
 import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.protocol.common.SimpleDefinitionRegistry;
 import org.cloudburstmc.protocol.bedrock.data.definitions.ItemDefinition;
 import org.cloudburstmc.protocol.bedrock.data.definitions.SimpleItemDefinition;
@@ -77,18 +78,64 @@ public class StartGame implements BedrockPacketTranslator{
       blockPalette = packet.getBlockPalette();
     } catch (Throwable ignored) {
     }
+    if (Server.getInstance().getConfig().isDebug()) {
+      Server.getInstance().getLogger().debug(
+        "[StartGame] getBlockPalette() returned: " +
+        (blockPalette == null ? "NULL" : ("size=" + blockPalette.size())));
+    }
+
+    // If getBlockPalette() returned null, try reflection to find the field
+    if (blockPalette == null || blockPalette.isEmpty()) {
+      try {
+        for (java.lang.reflect.Field f : packet.getClass().getDeclaredFields()) {
+          if (f.getName().contains("blockPalette") || f.getName().contains("block_palette")) {
+            f.setAccessible(true);
+            Object val = f.get(packet);
+            if (Server.getInstance().getConfig().isDebug()) {
+              Server.getInstance().getLogger().debug(
+                "[StartGame] Found field '" + f.getName() +
+                "' type=" + f.getType().getName() +
+                " value=" + (val == null ? "NULL" : val.getClass().getName()));
+            }
+            if (val instanceof List) {
+              @SuppressWarnings("unchecked")
+              List<NbtMap> casted = (List<NbtMap>) val;
+              blockPalette = casted;
+              break;
+            } else if (val instanceof NbtMap) {
+              // It's a compound containing a "blocks" list
+              NbtMap compound = (NbtMap) val;
+              List<NbtMap> blocks = compound.getList("blocks", NbtType.COMPOUND);
+              if (blocks != null && !blocks.isEmpty()) {
+                blockPalette = blocks;
+                break;
+              }
+            }
+          }
+        }
+      } catch (Throwable t) {
+        if (Server.getInstance().getConfig().isDebug()) {
+          Server.getInstance().getLogger().debug(
+            "[StartGame] Reflection search for blockPalette failed: " + t);
+        }
+      }
+    }
+
     if (blockPalette != null && !blockPalette.isEmpty()) {
       player.setBlockMapper(new BlockMapper(blockPalette));
+      if (Server.getInstance().getConfig().isDebug()) {
+        Server.getInstance().getLogger().debug(
+          "[StartGame] BlockMapper created from StartGamePacket palette, size=" +
+          player.getBlockMapper().size());
+      }
     } else if (Server.getInstance().getBlockDefinitions() != null) {
-      // Fallback: use bundled palette (less accurate but better than nothing)
-      // The NbtBlockDefinitionRegistry stores NbtMaps indexed by runtime ID
+      // Fallback: use bundled palette
       List<NbtMap> bundled = new java.util.ArrayList<>();
       for (int i = 0; ; i++) {
         try {
           org.cloudburstmc.protocol.bedrock.data.definitions.BlockDefinition bd =
                   Server.getInstance().getBlockDefinitions().getDefinition(i);
           if (bd == null) break;
-          // Use reflection to get the NbtMap from NbtBlockDefinition
           java.lang.reflect.Field f = bd.getClass().getDeclaredField("definition");
           f.setAccessible(true);
           bundled.add((NbtMap) f.get(bd));
@@ -98,7 +145,18 @@ public class StartGame implements BedrockPacketTranslator{
       }
       if (!bundled.isEmpty()) {
         player.setBlockMapper(new BlockMapper(bundled));
+        if (Server.getInstance().getConfig().isDebug()) {
+          Server.getInstance().getLogger().debug(
+            "[StartGame] BlockMapper created from BUNDLED palette, size=" +
+            player.getBlockMapper().size() + " (WARNING: may not match backend version)");
+        }
+      } else {
+        Server.getInstance().getLogger().warn(
+          "[StartGame] BlockMapper NOT created - no block palette available! Chunks will be empty.");
       }
+    } else {
+      Server.getInstance().getLogger().warn(
+        "[StartGame] BlockMapper NOT created - no block definitions available! Chunks will be empty.");
     }
 
     if(packet.getAuthoritativeMovementMode() == AuthoritativeMovementMode.SERVER){
