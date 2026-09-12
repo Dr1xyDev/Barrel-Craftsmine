@@ -103,7 +103,7 @@ public class LevelChunk implements BedrockPacketTranslator {
                         int palSize = pal[0];
                         palette = new int[palSize];
                         for (int i = 0; i < palSize; i++) {
-                            int[] pe = readVarInt(raw, pos);
+                            int[] pe = readSVarInt(raw, pos);
                             pos = pe[1];
                             palette[i] = pe[0];
                         }
@@ -128,7 +128,7 @@ public class LevelChunk implements BedrockPacketTranslator {
                         int palSize = pal[0];
                         palette = new int[palSize];
                         for (int i = 0; i < palSize; i++) {
-                            int[] pe = readVarInt(raw, pos);
+                            int[] pe = readSVarInt(raw, pos);
                             pos = pe[1];
                             palette[i] = pe[0];
                         }
@@ -297,5 +297,19 @@ public class LevelChunk implements BedrockPacketTranslator {
             shift += 7;
         }
         return new int[]{val, pos};
+    }
+
+    /**
+     * Block palette entries in the Bedrock chunk format are signed VarInts
+     * (zigzag-encoded), NOT plain unsigned VarInts. Reading them with the
+     * unsigned decoder above corrupts every runtime ID above a small value,
+     * which made BlockMapper resolve almost every block to id 0 (air) -
+     * i.e. the empty/invisible world bug.
+     */
+    private static int[] readSVarInt(byte[] buf, int pos) {
+        int[] raw = readVarInt(buf, pos);
+        int zz = raw[0];
+        int val = (zz >>> 1) ^ -(zz & 1);
+        return new int[]{val, raw[1]};
     }
 }
