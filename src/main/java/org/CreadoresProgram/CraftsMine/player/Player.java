@@ -149,7 +149,7 @@ public class Player extends Vector3{
     this.packetTranslatorManager = new PacketTranslatorManager(this);
     this.screenManager = new ScreenManager(this);
   }
-  private void login(org.CreadoresProgram.CraftsMine.network.protocol.LoginPacket loginpack){
+  private void login(org.CreadoresProgram.CraftsMine.network.protocol.LoginPacket loginpack) throws Exception {
     this.username = this.craftsmanUsername = loginpack.username;
     this.UUID = loginpack.clientUUID.toString();
     this.clientID = loginpack.clientId;
@@ -157,6 +157,13 @@ public class Player extends Vector3{
     Config config = Server.getInstance().getConfig();
     try{
       InetSocketAddress bedrockAddress = new InetSocketAddress(config.getBedrockAddress(), config.getBedrockPort());
+      // Latch that flips once the RakNet handshake actually completes and
+      // initSession() runs. connect().awaitUninterruptibly() only waits for
+      // the local UDP channel to be created - NOT for the remote RakNet
+      // session to be established - so bedrockClientSession used to still be
+      // null immediately after this block, causing an NPE on getPeer()/
+      // sendPacketImmediately() the moment the caller tried to use it.
+      final java.util.concurrent.CountDownLatch sessionReady = new java.util.concurrent.CountDownLatch(1);
       this.channel = new Bootstrap().channelFactory(RakChannelFactory.client(NioDatagramChannel.class))
         .group(new NioEventLoopGroup())
         .option(RakChannelOption.RAK_PROTOCOL_VERSION, Server.getInstance().getBedrockPacketCodec().getRaknetProtocolVersion())
@@ -169,18 +176,33 @@ public class Player extends Vector3{
             RequestNetworkSettingsPacket requestNetworkSettingsPacket = new RequestNetworkSettingsPacket();
             requestNetworkSettingsPacket.setProtocolVersion(Server.getInstance().getBedrockPacketCodec().getProtocolVersion());
             session.sendPacketImmediately(requestNetworkSettingsPacket);
+            sessionReady.countDown();
           }
         })
         .connect(bedrockAddress)
         .awaitUninterruptibly().channel();
+
+      // Now actually wait for the RakNet session (not just the local socket)
+      // to come up before returning control to LoginHPacket, which uses
+      // bedrockClientSession right away.
+      boolean ready = sessionReady.await(10, TimeUnit.SECONDS);
+      if (!ready || this.bedrockClientSession == null) {
+        throw new java.io.IOException("Timed out waiting for backend RakNet session (server offline or unreachable at "
+            + config.getBedrockAddress() + ":" + config.getBedrockPort() + ")");
+      }
     }catch(Exception exception){
       org.CreadoresProgram.CraftsMine.network.protocol.LoginStatusPacket pk = new org.CreadoresProgram.CraftsMine.network.protocol.LoginStatusPacket();
       pk.status = org.CreadoresProgram.CraftsMine.network.protocol.LoginStatusPacket.LOGIN_SUCCESS;
       this.sendDataCraftsman(pk);
       this.disconnect("Failed to connect: "+ exception + " or Server offline");
+      // Re-throw so callers (LoginHPacket) know the backend session never
+      // came up and stop instead of calling getBedrockClientSession() on a
+      // still-null session (that follow-on NPE was the "Failed to connect"
+      // + "client disconnect" double-disconnect seen in the log).
+      throw exception;
     }
   }
-  public void onLogin(org.CreadoresProgram.CraftsMine.network.protocol.LoginPacket loginpack){
+  public void onLogin(org.CreadoresProgram.CraftsMine.network.protocol.LoginPacket loginpack) throws Exception {
     this.skinC = loginpack.skin;
     this.skinId = loginpack.skinId;
     this.nbf = loginpack.nbf;
